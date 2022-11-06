@@ -1,0 +1,211 @@
+[gd_scene load_steps=9 format=3 uid="uid://cfkswljqdlj1f"]
+
+[ext_resource type="Shader" path="res://main/ball.gdshader" id="1_71tpv"]
+[ext_resource type="Script" path="res://main/Graph.gd" id="2_5uvps"]
+[ext_resource type="Script" path="res://main/tweaks/value.gd" id="3_nx58s"]
+
+[sub_resource type="Theme" id="Theme_m33d5"]
+default_font_size = 26
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5ijyv"]
+shader = ExtResource("1_71tpv")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_kg3p3"]
+size = Vector2(100, 100)
+orientation = 2
+
+[sub_resource type="GDScript" id="GDScript_67nx2"]
+script/source = "extends Node2D
+
+const Spring = preload(\"res://main/spring.gd\")
+
+var spring_x: Spring
+var spring_y: Spring
+var target = Vector2(0, 0)
+
+@onready var graph = get_node(\"../GraphRect/Graph\")
+
+func _ready():
+	spring_x = Spring.new()
+	spring_y = Spring.new()
+	# spring params are the same for x and y => connect only spring_x
+	spring_x.spring_updated.connect(graph.update_graph)
+	spring_x.init(0)
+	spring_y.init(0)
+
+func _process(delta):
+	position.x = spring_x.compute(delta, target.x)
+	position.y = spring_y.compute(delta, target.y)
+
+func _input(event):
+	if event is InputEventMouseMotion and event.position.x < 740:
+		target = event.position
+
+func _on_freq_changed(value):
+	spring_x.f = value
+	spring_y.f = value
+
+func _on_z_changed(value):
+	spring_x.z = value
+	spring_y.z = value
+
+func _on_r_changed(value):
+	spring_x.r = value
+	spring_y.r = value
+"
+
+[sub_resource type="Curve2D" id="Curve2D_dtmba"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_m33d5")
+metadata/_edit_lock_ = true
+metadata/_edit_vertical_guides_ = [-97.0]
+
+[node name="Ball" type="MeshInstance2D" parent="."]
+material = SubResource("ShaderMaterial_5ijyv")
+mesh = SubResource("PlaneMesh_kg3p3")
+script = SubResource("GDScript_67nx2")
+
+[node name="GraphRect" type="ColorRect" parent="."]
+layout_mode = 0
+offset_left = 831.0
+offset_top = 303.0
+offset_right = 1031.0
+offset_bottom = 503.0
+color = Color(0.0980392, 0.0980392, 0.0980392, 0.462745)
+
+[node name="Graph" type="Path2D" parent="GraphRect"]
+position = Vector2(0, 200)
+curve = SubResource("Curve2D_dtmba")
+script = ExtResource("2_5uvps")
+
+[node name="Tweaks" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 797.0
+offset_top = 118.0
+offset_right = 1062.0
+offset_bottom = 275.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Tweaks"]
+layout_mode = 2
+offset_right = 265.0
+offset_bottom = 157.0
+theme_override_constants/separation = 20
+
+[node name="FreqTweak" type="HBoxContainer" parent="Tweaks/VBoxContainer"]
+layout_mode = 2
+offset_right = 265.0
+offset_bottom = 39.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Tweaks/VBoxContainer/FreqTweak"]
+layout_mode = 2
+offset_right = 14.0
+offset_bottom = 39.0
+text = "F"
+
+[node name="Value" type="Label" parent="Tweaks/VBoxContainer/FreqTweak"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+offset_left = 18.0
+offset_right = 68.0
+offset_bottom = 39.0
+text = "10"
+script = ExtResource("3_nx58s")
+
+[node name="HSlider" type="HSlider" parent="Tweaks/VBoxContainer/FreqTweak"]
+layout_mode = 2
+offset_left = 72.0
+offset_right = 265.0
+offset_bottom = 39.0
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = 0.1
+max_value = 50.0
+step = 0.1
+value = 1.0
+exp_edit = true
+
+[node name="SigmaTweak" type="HBoxContainer" parent="Tweaks/VBoxContainer"]
+layout_mode = 2
+offset_top = 59.0
+offset_right = 265.0
+offset_bottom = 98.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Tweaks/VBoxContainer/SigmaTweak"]
+layout_mode = 2
+offset_right = 15.0
+offset_bottom = 39.0
+text = "Z"
+
+[node name="Value" type="Label" parent="Tweaks/VBoxContainer/SigmaTweak"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+offset_left = 19.0
+offset_right = 69.0
+offset_bottom = 39.0
+text = "10"
+script = ExtResource("3_nx58s")
+
+[node name="HSlider" type="HSlider" parent="Tweaks/VBoxContainer/SigmaTweak"]
+layout_mode = 2
+offset_left = 73.0
+offset_right = 265.0
+offset_bottom = 39.0
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = 0.1
+max_value = 5.0
+step = 0.1
+value = 1.0
+exp_edit = true
+
+[node name="RTweak" type="HBoxContainer" parent="Tweaks/VBoxContainer"]
+layout_mode = 2
+offset_top = 118.0
+offset_right = 265.0
+offset_bottom = 157.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Tweaks/VBoxContainer/RTweak"]
+layout_mode = 2
+offset_right = 17.0
+offset_bottom = 39.0
+text = "R"
+
+[node name="Value" type="Label" parent="Tweaks/VBoxContainer/RTweak"]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+offset_left = 21.0
+offset_right = 71.0
+offset_bottom = 39.0
+text = "0"
+script = ExtResource("3_nx58s")
+
+[node name="HSlider" type="HSlider" parent="Tweaks/VBoxContainer/RTweak"]
+layout_mode = 2
+offset_left = 75.0
+offset_right = 265.0
+offset_bottom = 39.0
+size_flags_horizontal = 3
+size_flags_vertical = 1
+min_value = -2.0
+max_value = 2.0
+step = 0.1
+
+[connection signal="value_changed" from="Tweaks/VBoxContainer/FreqTweak/HSlider" to="Tweaks/VBoxContainer/FreqTweak/Value" method="_on_h_slider_value_changed"]
+[connection signal="value_changed" from="Tweaks/VBoxContainer/FreqTweak/HSlider" to="Ball" method="_on_freq_changed"]
+[connection signal="value_changed" from="Tweaks/VBoxContainer/SigmaTweak/HSlider" to="Tweaks/VBoxContainer/SigmaTweak/Value" method="_on_h_slider_value_changed"]
+[connection signal="value_changed" from="Tweaks/VBoxContainer/SigmaTweak/HSlider" to="Ball" method="_on_z_changed"]
+[connection signal="value_changed" from="Tweaks/VBoxContainer/RTweak/HSlider" to="Tweaks/VBoxContainer/RTweak/Value" method="_on_h_slider_value_changed"]
+[connection signal="value_changed" from="Tweaks/VBoxContainer/RTweak/HSlider" to="Ball" method="_on_r_changed"]
